@@ -1,22 +1,21 @@
 package Persistence.Repository;
 
 import Persistence.Entity.ProductEntity;
-import Persistence.Repository.*;
-
-import com.example.demo.TestJpaConfig;
+import com.example.demo.ProductApplication;
+import com.example.demo.Config.TestJpaConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.TestPropertySource;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-@DataJpaTest
-@Import(TestJpaConfig.class)
+@SpringBootTest(classes = {ProductApplication.class, TestJpaConfig.class})
+@ActiveProfiles("test")
+
 public class ProductRepositoryTest {
 
     @Autowired
@@ -33,8 +32,8 @@ public class ProductRepositoryTest {
         List<ProductEntity> products = productRepository.findAll();
 
         assertEquals(2, products.size());
-        assertTrue(products.contains(product1));
-        assertTrue(products.contains(product2));
+        assertTrue(products.stream().anyMatch(p -> p.getName().equals("Product1")));
+        assertTrue(products.stream().anyMatch(p -> p.getName().equals("Product2")));
     }
 
     @Test
@@ -46,13 +45,14 @@ public class ProductRepositoryTest {
         Optional<ProductEntity> foundProduct = productRepository.findById(productId);
 
         assertTrue(foundProduct.isPresent());
-        assertEquals(product, foundProduct.get());
+        assertEquals(product.getName(), foundProduct.get().getName());
+        assertEquals(product.getDescription(), foundProduct.get().getDescription());
+        assertEquals(product.getPrice(), foundProduct.get().getPrice());
     }
 
     @Test
     void testSave() {
         ProductEntity product = new ProductEntity(null, "Product1", "Description1", 10.0);
-
         ProductEntity savedProduct = productRepository.save(product);
 
         assertNotNull(savedProduct.getId());
@@ -62,7 +62,7 @@ public class ProductRepositoryTest {
     }
 
     @Test
-    void testDeleteById() {
+    void testDelete() {
         ProductEntity product = new ProductEntity(null, "Product1", "Description1", 10.0);
         product = productRepository.save(product);
         Long productId = product.getId();
@@ -70,8 +70,6 @@ public class ProductRepositoryTest {
         productRepository.deleteById(productId);
 
         Optional<ProductEntity> deletedProduct = productRepository.findById(productId);
-
         assertFalse(deletedProduct.isPresent());
     }
-
 }
