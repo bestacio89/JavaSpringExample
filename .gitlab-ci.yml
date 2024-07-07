@@ -3,21 +3,21 @@ stages:
   - test
   - deploy
 
-build_job:
+Build Application:
   stage: build
   image: maven:3.8.5-eclipse-temurin-17-alpine
   script:
     - echo "Building the application..."
     - mvn clean package
 
-test_job:
+Test Application:
   stage: test
   image: maven:3.8.5-eclipse-temurin-17-alpine
   script:
     - echo "Running unit tests..."
     - mvn test
 
-deploy_job:
+Deployment:
   stage: deploy
   script:
     - echo "** Deployment Script Placeholder **"  # Placeholder for deployment commands
