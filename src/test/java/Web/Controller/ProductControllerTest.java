@@ -6,17 +6,23 @@ import Web.Models.ProductCreateDto;
 import Web.Models.ProductDto;
 import Persistence.Entity.ProductEntity;
 import Service.ProductService;
+import com.example.demo.ProductApplication;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
-// Each test method will have its own @Test annotation
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentMatchers;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -26,17 +32,21 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(ProductController.class)
+@WebMvcTest
+@ContextConfiguration(classes = {ProductApplication.class})
+@AutoConfigureMockMvc
+@Import({ProductService.class})
+@AutoConfigureDataJpa
 public class ProductControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private ProductService productService;  // Use real service
+    private ProductService productService;
 
     @MockBean
-    private ProductRepository productRepository;  // Mock repository
+    private  ProductRepository productRepository;
 
     @Autowired
     private ObjectMapper objectMapper;
@@ -45,6 +55,7 @@ public class ProductControllerTest {
     private ProductDto productDTO;
     private ProductCreateDto productCreateDTO;
 
+
     @BeforeEach
     void setUp() {
         product = new ProductEntity(1L, "Product1", "Description1", 10.0);
@@ -52,7 +63,6 @@ public class ProductControllerTest {
         productCreateDTO = new ProductCreateDto("Product1", "Description1", 10.0);
     }
 
-    // Test for getting all products
     @Test
     void testGetAllProducts() throws Exception {
         List<ProductEntity> products = Arrays.asList(product);
@@ -67,10 +77,9 @@ public class ProductControllerTest {
                 .andExpect(jsonPath("$[0].price").value(product.getPrice()));
     }
 
-    // Test for getting a product by ID
     @Test
     void testGetProductById() throws Exception {
-        when(productRepository.findById(product.getId())).thenReturn(Optional.of(product));
+        when(productRepository.findById(product.getId())).thenReturn(Optional.of(product));  // Use Mockito's when syntax
 
         mockMvc.perform(get("/api/products/{id}", product.getId())
                         .contentType(MediaType.APPLICATION_JSON))
@@ -81,7 +90,7 @@ public class ProductControllerTest {
                 .andExpect(jsonPath("$.price").value(product.getPrice()));
     }
 
-    // Test for creating a new product
+
     @Test
     void testCreateProduct() throws Exception {
         when(productRepository.save(ArgumentMatchers.any(ProductEntity.class))).thenReturn(product);
@@ -90,7 +99,7 @@ public class ProductControllerTest {
         mockMvc.perform(post("/api/products")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(productCreateDTO)))
-                .andExpect(status().isCreated())  // Expect 201 Created
+                .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(product.getId()))
                 .andExpect(jsonPath("$.name").value(product.getName()))
                 .andExpect(jsonPath("$.description").value(product.getDescription()))
@@ -103,6 +112,7 @@ public class ProductControllerTest {
         when(productRepository.findById(product.getId())).thenReturn(Optional.of(product));
         when(productRepository.save(ArgumentMatchers.any(ProductEntity.class))).thenReturn(updatedProduct);
         when(productService.save(ArgumentMatchers.any(ProductEntity.class))).thenReturn(updatedProduct);
+
         mockMvc.perform(put("/api/products/{id}", product.getId())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updatedProduct)))
@@ -117,6 +127,6 @@ public class ProductControllerTest {
     void testDeleteProduct() throws Exception {
         when(productRepository.findById(product.getId())).thenReturn(Optional.of(product));
         mockMvc.perform(delete("/api/products/{id}", product.getId()))
-                .andExpect(status().isNoContent()); // Expect 204 No Content
+                .andExpect(status().isNoContent());
     }
 }
