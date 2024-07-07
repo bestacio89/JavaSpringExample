@@ -5,14 +5,14 @@ stages:
 
 build_job:
   stage: build
-  image: maven:3.8.5-jdk-17
+  image: maven:3.8.5-eclipse-temurin-17-alpine
   script:
     - echo "Building the application..."
     - mvn clean package
 
 test_job:
   stage: test
-  image: maven:3.8.5-jdk-17
+  image: maven:3.8.5-eclipse-temurin-17-alpine
   script:
     - echo "Running unit tests..."
     - mvn test
