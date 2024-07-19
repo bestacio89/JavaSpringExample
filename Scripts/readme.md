@@ -1,7 +1,3 @@
-Yes, including a README file with instructions for your team is a great idea. It ensures that everyone understands how to set up their environment correctly and can adjust the paths according to their own system configurations. Here's a sample README file you can use as a template.
-
----
-
 # Docker Environment Setup
 
 This script sets up the Docker environment with containers for MongoDB, Zookeeper, Kafka, PostgreSQL, MariaDB, SQL Server, and Java 17. Follow the instructions below to configure and run the environment on your machine.
