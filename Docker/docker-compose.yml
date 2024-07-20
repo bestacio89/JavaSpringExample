@@ -1,5 +1,3 @@
-version: '1.29.2'  # Update to a newer version when possible (e.g., 3.9)
-
 services:
   mongodb:
     image: mongo:4.4  # Stable version of MongoDB
@@ -11,6 +9,8 @@ services:
       - "27017:27017"
     volumes:
       - ./MongoDBData:/data/db
+    networks:
+      - app-network
 
   zookeeper:
     image: confluentinc/cp-zookeeper:8.2.3  # Stable version of Zookeeper
@@ -19,6 +19,8 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
     ports:
       - "2181:2181"
+    networks:
+      - app-network
 
   kafka:
     image: confluentinc/cp-kafka:8.2.3  # Stable version of Kafka
@@ -34,6 +36,8 @@ services:
       - ./KafkaData:/var/lib/kafka/data
     depends_on:
       - zookeeper
+    networks:
+      - app-network
 
   postgres:
     image: postgres:14.5  # Stable version of PostgreSQL
@@ -46,6 +50,8 @@ services:
       - "5432:5432"
     volumes:
       - ./PostgresData:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   mariadb:
     image: mariadb:10.8  # Stable version of MariaDB
@@ -59,6 +65,8 @@ services:
       - "3306:3306"
     volumes:
       - ./MariaDBData:/var/lib/mysql
+    networks:
+      - app-network
 
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2019-latest  # Consider LTS version for SQL Server
@@ -70,6 +78,8 @@ services:
       - "1433:1433"
     volumes:
       - ./SQLServerData:/var/opt/mssql
+    networks:
+      - app-network
 
   app:
     build:
@@ -79,12 +89,17 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mydatabase
-      SPRING_DATASOURCE_USERNAME: root  # Update username if needed
-      SPRING_DATASOURCE_PASSWORD: bl@dg3r$$  # Update password if needed
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/Product
+      SPRING_DATASOURCE_USERNAME: myuser  # Should match POSTGRES_USER
+      SPRING_DATASOURCE_PASSWORD: bl@dg3r$$  # Should match POSTGRES_PASSWORD
     depends_on:
       - postgres
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   db_data:
-
