@@ -1,0 +1,81 @@
+# Config for Dependabot updates. See Documentation here:
+# https://help.github.com/github/administering-a-repository/configuration-options-for-dependency-updates
+
+version: 2
+updates:
+  # Update GitHub actions in workflows
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    # Every 2 weeks
+    schedule:
+      interval: 'weekly'
+      time: 'sunday'  # You can specify the day of the week
+      day: 1  # This setting makes it bi-weekly (e.g., 1st and 15th of each month)
+
+  # Enable version updates for Docker
+  - package-ecosystem: 'docker'
+    # Look for a `Dockerfile` in the `compose/local` directory
+    directory: 'compose/local/'
+    # Every 2 weeks
+    schedule:
+      interval: 'weekly'
+      time: 'sunday'
+      day: 1  # Bi-weekly
+
+    # Ignore major and minor version updates, only patch versions will be updated
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - 'version-update:semver-major'
+          - 'version-update:semver-minor'
+
+  - package-ecosystem: 'docker'
+    # Look for a `Dockerfile` in the `compose/production` directory
+    directory: 'compose/production/'
+    # Every 2 weeks
+    schedule:
+      interval: 'weekly'
+      time: 'sunday'
+      day: 1  # Bi-weekly
+
+    # Ignore major and minor version updates, only patch versions will be updated
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - 'version-update:semver-major'
+          - 'version-update:semver-minor'
+
+  # Enable version updates for Maven (Java) dependencies
+  - package-ecosystem: 'maven'
+    # Look for a `pom.xml` file in the `root` directory
+    directory: '/'
+    # Every 2 weeks
+    schedule:
+      interval: 'weekly'
+      time: 'sunday'
+      day: 1  # Bi-weekly
+
+    # Ignore major and minor version updates, only patch versions will be updated
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - 'version-update:semver-major'
+          - 'version-update:semver-minor'
+
+  # If you have additional Maven dependencies in specific subdirectories, specify them here
+  # Example for a subdirectory with a `pom.xml` file
+  - package-ecosystem: 'maven'
+    # Look for a `pom.xml` file in a specific subdirectory
+    directory: 'subdirectory/'
+    # Every 2 weeks
+    schedule:
+      interval: 'weekly'
+      time: 'sunday'
+      day: 1  # Bi-weekly
+
+    # Ignore major and minor version updates, only patch versions will be updated
+    ignore:
+      - dependency-name: '*'
+        update-types:
+          - 'version-update:semver-major'
+          - 'version-update:semver-minor'
