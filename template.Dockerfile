@@ -17,11 +17,19 @@ FROM eclipse-temurin:17-jre
 # Set the working directory inside the container
 WORKDIR /usr/src/app
 
-# Copy the JAR from the build stage
-COPY --from=builder /usr/src/app/target/*.jar /usr/src/app/app.jar
-
 # Expose the application port
 EXPOSE 8080
+
+# Environment variables for Liquibase user (replace with your values)
+ENV LIQUIBASE_USERNAME liquibase_user
+ENV LIQUIBASE_PASSWORD bl@dg3r$$  # Replace with a strong password
+
+# Optional: Create Liquibase user within the container (using environment variables)
+RUN echo "Creating Liquibase user..." && \
+    psql -h <postgres-host> -U postgres -p <postgres-port> -c "CREATE USER $LIQUIBASE_USERNAME WITH PASSWORD '$LIQUIBASE_PASSWORD';"
+
+# Copy the JAR from the build stage
+COPY --from=builder /usr/src/app/target/*.jar /usr/src/app/app.jar
 
 # Entrypoint and command to run the application
 ENTRYPOINT ["java", "-jar", "/usr/src/app/app.jar"]
