@@ -26,7 +26,7 @@ ENV LIQUIBASE_PASSWORD bl@dg3r$$  # Replace with a strong password
 
 # Optional: Create Liquibase user within the container (using environment variables)
 RUN echo "Creating Liquibase user..." && \
-    psql -h <postgres-host> -U postgres -p <postgres-port> -c "CREATE USER $LIQUIBASE_USERNAME WITH PASSWORD '$LIQUIBASE_PASSWORD';"
+    psql -h localhost -U postgres -p 5432 -c "CREATE USER $LIQUIBASE_USERNAME WITH PASSWORD '$LIQUIBASE_PASSWORD';"
 
 # Copy the JAR from the build stage
 COPY --from=builder /usr/src/app/target/*.jar /usr/src/app/app.jar
