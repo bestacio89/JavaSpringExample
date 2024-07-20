@@ -60,7 +60,7 @@ jobs:
 
       - name: Run Maven tests  # Step to run tests
         run: |
-          docker compose -f Docker/docker-compose.yml run JavaSpringExample mvn test  # Run Maven tests
+          docker compose -f Docker/docker-compose.yml run app mvn test  # Run Maven tests
           # Note: Ensure 'JavaSpringExample' is the correct service name
 
       - name: Tear down the Docker stack  # Step to tear down the Docker stack
