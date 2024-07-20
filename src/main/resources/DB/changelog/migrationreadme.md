@@ -1,4 +1,3 @@
-Certainly! Below is a sample README file for creating and managing new database migrations using Liquibase. This guide is designed to help developers understand how to create and apply migrations, as well as manage and document changes effectively.
 # **Database Migration Guide with Liquibase**
 
 This document provides instructions for managing database schema changes using Liquibase. Follow these steps to create and apply new migrations effectively.
@@ -78,7 +77,8 @@ This document provides instructions for managing database schema changes using L
 
 > **⚠️ Warning: Please keep in mind to maintain the order in which each file is referenced.**  
 > If the order of migration files or changelog files is incorrect, it may lead to data loss or corruption. Ensure that all migrations are applied sequentially and in the correct order to maintain database integrity and consistency.
-3. **Define ChangeSets**
+
+3.**Define ChangeSets**
 
    Each `<changeSet>` element represents a single change to the database schema. Ensure each change has a unique `id` and includes a description of the change. For example:
 
@@ -138,13 +138,16 @@ This document provides instructions for managing database schema changes using L
 
    Always test migrations in a development or staging environment before applying them to production.
 
+
 2. **Document Changes**
 
    Clearly document the purpose of each changeset and any dependencies between changesets.
 
+
 3. **Version Control**
 
    Include all Liquibase changelog files in your version control system to track schema changes over time.
+
 
 4. **Collaborate**
 

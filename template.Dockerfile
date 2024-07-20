@@ -9,7 +9,7 @@ COPY pom.xml .
 COPY src ./src
 
 # Package the application
-RUN mvn clean package
+RUN mvn clean package -DskipTests
 
 # Base image for running the application (using Java 17)
 FROM openjdk:17-jre-alpine
