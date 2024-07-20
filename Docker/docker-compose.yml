@@ -40,7 +40,7 @@ services:
     container_name: PostgreSQL
     environment:
       POSTGRES_PASSWORD: bl@dg3r$$  # Consider using a stronger password
-      POSTGRES_DB: mydatabase
+      POSTGRES_DB: Product
       POSTGRES_USER: myuser
     ports:
       - "5432:5432"
