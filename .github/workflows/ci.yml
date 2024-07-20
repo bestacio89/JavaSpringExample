@@ -51,21 +51,19 @@ jobs:
 
       - name: Build the Docker stack  # Step to build the Docker stack
         run: |
-          docker compose -f docker-compose.yml build  # Build all services defined in docker-compose.yml
+          docker compose -f Docker/docker-compose.yml build  # Build all services defined in Docker/docker-compose.yml
 
       - name: Run changelog Migrations  # Step to run database migrations
         run: |
-          docker compose -f docker-compose.yml run --rm app mvn flyway:migrate  # Run Flyway migrations
-          # Note: Replace 'app' with your service name if different
+          docker compose -f Docker/docker-compose.yml run --rm app mvn flyway:migrate  # Run Flyway migrations
+          # Note: Ensure 'app' is the correct service name
 
       - name: Run Maven tests  # Step to run tests
         run: |
-          docker compose -f docker-compose.yml run app mvn test  # Run Maven tests
-          # Note: Replace 'app' with your service name if different
+          docker compose -f Docker/docker-compose.yml run JavaSpringExample mvn test  # Run Maven tests
+          # Note: Ensure 'JavaSpringExample' is the correct service name
 
       - name: Tear down the Docker stack  # Step to tear down the Docker stack
         run: |
-          docker compose -f docker-compose.yml down  # Take down the stack
+          docker compose -f Docker/docker-compose.yml down  # Take down the stack
           # Adjust command options as needed (e.g., stop only specific services)
-
-# End of GitHub Actions workflow
