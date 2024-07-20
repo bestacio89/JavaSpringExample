@@ -12,7 +12,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Base image for running the application (using Java 17)
-FROM openjdk:17-jre-alpine
+FROM eclipse-temurin:17-jre
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app
