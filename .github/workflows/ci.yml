@@ -53,9 +53,9 @@ jobs:
         run: |
           docker compose -f Docker/docker-compose.yml build  # Build all services defined in Docker/docker-compose.yml
 
-      - name: Run Liquidbase Migrations  # Step to run database migrations
-        run: |
-         docker compose -f Docker/docker-compose.yml run --rm app mvn liquibase:update  # Run Flyway migrations
+    #  - name: Run Liquidbase Migrations  # Step to run database migrations
+     #   run: |
+      #   docker compose -f Docker/docker-compose.yml run --rm app mvn liquibase:update  # Run Flyway migrations
           # Note: Ensure 'app' is the correct service name
 
       - name: Run Maven tests  # Step to run tests
