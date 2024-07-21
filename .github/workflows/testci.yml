@@ -1,10 +1,9 @@
 name: Template Test Pipeline
 
+
 on:
-  pull_request:
-    branches:
-      - develop
-      - main
+  ['pull_request']
+
 
 jobs:
   test:
@@ -32,4 +31,4 @@ jobs:
       run: mvn -B package --file pom.xml
 
     - name: Run tests with Maven
-      run: mvn test 
+      run: mvn test
