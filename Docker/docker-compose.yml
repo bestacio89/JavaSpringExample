@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   mongodb:
     image: mongo:4.4
@@ -71,7 +69,7 @@ services:
       - app-network
 
   sqlserver:
-    image: mcr.microsoft.com/mssql/server:2019-latest
+    image: mcr.microsoft.com/mssql/server:2019-latest  # Consider LTS version for SQL Server
     container_name: SQLServer
     environment:
       ACCEPT_EULA: Y
