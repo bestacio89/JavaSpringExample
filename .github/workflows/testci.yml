@@ -9,11 +9,6 @@ on:
     paths-ignore:
       ['docs/**']
 
-  pull_request:
-    branches:
-      - ['main', 'develop']
-    paths-ignore:
-      -['docs/**']
 
 
 jobs:
