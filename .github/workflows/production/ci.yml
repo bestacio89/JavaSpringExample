@@ -1,87 +1,86 @@
-name: CI/CD Pipeline
+name: CI  # Name of the GitHub Actions workflow
 
+# Enable Buildkit and let compose use it to speed up image building
 env:
   DOCKER_BUILDKIT: 1
   COMPOSE_DOCKER_CLI_BUILD: 1
 
+# Define the events that trigger this workflow
 on:
+  # Trigger on pull requests to master or main branches, ignoring changes in 'docs' directory
   pull_request:
-    branches:
-      - develop
-      - main
-    paths-ignore:
-      - 'docs/**'
+    branches: ['master', 'main']
+    paths-ignore: ['docs/**']
 
+  # Trigger on push to master or main branches, ignoring changes in 'docs' directory
+  push:
+    branches: ['master', 'main']
+    paths-ignore: ['docs/**']
+
+# Define concurrency settings to ensure multiple workflows don't interfere
 concurrency:
-  group: ${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
+  group: ${{ github.head_ref || github.run_id }}  # Group by head ref or run ID
+  cancel-in-progress: true  # Cancel previous runs if a new one is triggered
 
+# Define jobs to run in this workflow
 jobs:
+  # Job for running linter
   linter:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Use Ubuntu latest version as the runner
 
     steps:
-      - name: Checkout Code Repository
-        uses: actions/checkout@v4
+      - name: Checkout Code Repository  # Step to checkout the code repository
+        uses: actions/checkout@v4  # Use GitHub's checkout action (v4)
 
-      - name: Set up JDK
-        uses: actions/setup-java@v3
+      - name: Set up JDK  # Step to set up Java environment
+        uses: actions/setup-java@v3  # Use GitHub's setup Java action (v3)
         with:
-          distribution: 'adopt'
-          java-version: '17'
+          distribution: 'adopt'  # Distribution of JDK
+          java-version: '17'  # Specify JDK version to use
 
-      - name: Run Maven linter
-        run: mvn checkstyle:check
+      - name: Run Maven linter  # Step to run Maven linter (e.g., checkstyle)
+        run: mvn checkstyle:check  # Run Maven checkstyle
 
+  # Job for running tests
   test:
-    runs-on: ubuntu-latest
-    needs: linter
+    runs-on: ubuntu-latest  # Use Ubuntu latest version as the runner
 
     steps:
-      - name: Checkout Code Repository
-        uses: actions/checkout@v4
+      - name: Checkout Code Repository  # Step to checkout the code repository
+        uses: actions/checkout@v4  # Use GitHub's checkout action (v4)
 
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'adopt'
-          java-version: '17'
-
-      - name: Build the Docker stack
-        run: docker compose -f Docker/docker-compose.yml build
-
-      - name: Run Liquibase Migrations
-        run: docker compose -f Docker/docker-compose.yml run --rm app mvn liquibase:update
-
-      - name: Run Maven Tests
-        run: docker compose -f Docker/docker-compose.yml run --rm app mvn test
-
-      - name: Tear down the Docker stack
-        run: docker compose -f Docker/docker-compose.yml down
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: test
-    if: github.base_ref == 'develop' || github.base_ref == 'main'
-
-    steps:
-      - name: Checkout Code Repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'adopt'
-          java-version: '17'
-
-      - name: Build Docker images
-        run: docker compose -f Docker/docker-compose.yml build
-
-      - name: Deploy Application
+      - name: Build the Docker stack  # Step to build the Docker stack
+        env:  # Set environment variables from GitHub Secrets
+          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          MARIADB_ROOT_PASSWORD: ${{ secrets.MARIADB_ROOT_PASSWORD }}
+          MARIADB_USER: ${{ secrets.MARIADB_USER }}
+          MARIADB_PASSWORD: ${{ secrets.MARIADB_PASSWORD }}
+          SA_PASSWORD: ${{ secrets.SA_PASSWORD }}
         run: |
-          docker compose -f Docker/docker-compose.yml up -d  # Adjust based on your deployment requirements
+          docker compose -f Docker/docker-compose.yml build  # Build all services defined in Docker/docker-compose.yml
 
-      - name: Verify Deployment
+      - name: Run Liquibase Migrations  # Step to run database migrations
+        env:  # Set environment variables from GitHub Secrets
+      
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+
+
         run: |
-          # Add commands to verify deployment if needed
-          curl -f http://your-deployed-app-url/health || exit 1
+          docker compose -f Docker/docker-compose.yml run --rm app mvn liquibase:update  # Run Liquibase migrations
+          # Note: Ensure 'app' is the correct service name
+
+      - name: Run Maven Tests  # Step to run Maven tests
+        env:  # Set environment variables from GitHub Secrets
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        run: |
+          docker compose -f Docker/docker-compose.yml run --rm app mvn test  # Run Maven tests
+          # Note: Ensure 'app' is the correct service name
+
+      - name: Tear down the Docker stack  # Step to tear down the Docker stack
+        run: |
+          docker compose -f Docker/docker-compose.yml down  # Take down the stack
+          # Adjust command options as needed (e.g., stop only specific services)

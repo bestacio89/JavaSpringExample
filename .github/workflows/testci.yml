@@ -1,7 +1,6 @@
 name: Template Test Pipeline
 
 
-
 on:
   ['pull_request']
 
