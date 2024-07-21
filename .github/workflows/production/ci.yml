@@ -50,15 +50,32 @@ jobs:
         uses: actions/checkout@v4  # Use GitHub's checkout action (v4)
 
       - name: Build the Docker stack  # Step to build the Docker stack
+        env:  # Set environment variables from GitHub Secrets
+          MONGO_INITDB_ROOT_PASSWORD: ${{ secrets.MONGO_INITDB_ROOT_PASSWORD }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          MARIADB_ROOT_PASSWORD: ${{ secrets.MARIADB_ROOT_PASSWORD }}
+          MARIADB_USER: ${{ secrets.MARIADB_USER }}
+          MARIADB_PASSWORD: ${{ secrets.MARIADB_PASSWORD }}
+          SA_PASSWORD: ${{ secrets.SA_PASSWORD }}
         run: |
           docker compose -f Docker/docker-compose.yml build  # Build all services defined in Docker/docker-compose.yml
 
       - name: Run Liquibase Migrations  # Step to run database migrations
+        env:  # Set environment variables from GitHub Secrets
+      
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+
+
         run: |
           docker compose -f Docker/docker-compose.yml run --rm app mvn liquibase:update  # Run Liquibase migrations
           # Note: Ensure 'app' is the correct service name
 
       - name: Run Maven Tests  # Step to run Maven tests
+        env:  # Set environment variables from GitHub Secrets
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
         run: |
           docker compose -f Docker/docker-compose.yml run --rm app mvn test  # Run Maven tests
           # Note: Ensure 'app' is the correct service name
