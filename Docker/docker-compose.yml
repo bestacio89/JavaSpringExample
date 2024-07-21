@@ -1,27 +1,29 @@
-version: '3.8'
-
 services:
   mongodb:
-    image: mongo:latest
+    image: mongo:4.4  # Stable version of MongoDB
     container_name: MongoDB
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: bl@dg3r$$
+      MONGO_INITDB_ROOT_PASSWORD: bl@dg3r$$  # Consider using a stronger password
     ports:
       - "27017:27017"
     volumes:
-      - B:/MongoDBData:/data/db
+      - ./MongoDBData:/data/db
+    networks:
+      - app-network
 
   zookeeper:
-    image: confluentinc/cp-zookeeper:latest
+    image: confluentinc/cp-zookeeper:8.2.3  # Stable version of Zookeeper
     container_name: zookeeper
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
     ports:
       - "2181:2181"
+    networks:
+      - app-network
 
   kafka:
-    image: confluentinc/cp-kafka:latest
+    image: confluentinc/cp-kafka:8.2.3  # Stable version of Kafka
     container_name: Franz
     environment:
       KAFKA_BROKER_ID: 1
@@ -31,59 +33,73 @@ services:
     ports:
       - "9092:9092"
     volumes:
-      - B:/KafkaData:/var/lib/kafka/data
+      - ./KafkaData:/var/lib/kafka/data
     depends_on:
       - zookeeper
+    networks:
+      - app-network
 
   postgres:
-    image: postgres:latest
+    image: postgres:14.5  # Stable version of PostgreSQL
     container_name: PostgreSQL
     environment:
-      POSTGRES_PASSWORD: bl@dg3r$$
-      POSTGRES_DB: mydatabase
+      POSTGRES_PASSWORD: bl@dg3r$$  # Consider using a stronger password
+      POSTGRES_DB: Product
       POSTGRES_USER: myuser
     ports:
       - "5432:5432"
     volumes:
-      - B:/PostgresData:/var/lib/postgresql/data
+      - ./PostgresData:/var/lib/postgresql/data
+    networks:
+      - app-network
 
   mariadb:
-    image: mariadb:latest
+    image: mariadb:10.8  # Stable version of MariaDB
     container_name: MariDb
     environment:
-      MARIADB_ROOT_PASSWORD: bl@dg3r$$
+      MARIADB_ROOT_PASSWORD: bl@dg3r$$  # Consider using a stronger password
       MARIADB_DATABASE: mydatabase
       MARIADB_USER: myuser
-      MARIADB_PASSWORD: bl@dg3r$$
+      MARIADB_PASSWORD: bl@dg3r$$  # Consider using a stronger password
     ports:
       - "3306:3306"
     volumes:
-      - B:/MariaDBData:/var/lib/mysql
+      - ./MariaDBData:/var/lib/mysql
+    networks:
+      - app-network
 
   sqlserver:
-    image: mcr.microsoft.com/mssql/server:2019-latest
+    image: mcr.microsoft.com/mssql/server:2019-latest  # Consider LTS version for SQL Server
     container_name: SQLServer
     environment:
       ACCEPT_EULA: Y
-      SA_PASSWORD: bl@dg3r$$
+      SA_PASSWORD: bl@dg3r$$  # Consider using a stronger password
     ports:
       - "1433:1433"
     volumes:
-      - B:/SQLServerData:/var/opt/mssql
+      - ./SQLServerData:/var/opt/mssql
+    networks:
+      - app-network
 
   app:
     build:
       context: ..
-      dockerfile: Dockerfile
+      dockerfile: template.Dockerfile
     container_name: TestSpring
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/mydatabase
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: bl@dg3r$$
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/Product
+      SPRING_DATASOURCE_USERNAME: myuser  # Should match POSTGRES_USER
+      SPRING_DATASOURCE_PASSWORD: bl@dg3r$$  # Should match POSTGRES_PASSWORD
     depends_on:
       - postgres
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
   db_data:

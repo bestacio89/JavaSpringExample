@@ -1,0 +1,87 @@
+name: CI/CD Pipeline
+
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
+    paths-ignore:
+      - 'docs/**'
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  linter:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Run Maven linter
+        run: mvn checkstyle:check
+
+  test:
+    runs-on: ubuntu-latest
+    needs: linter
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Build the Docker stack
+        run: docker compose -f Docker/docker-compose.yml build
+
+      - name: Run Liquibase Migrations
+        run: docker compose -f Docker/docker-compose.yml run --rm app mvn liquibase:update
+
+      - name: Run Maven Tests
+        run: docker compose -f Docker/docker-compose.yml run --rm app mvn test
+
+      - name: Tear down the Docker stack
+        run: docker compose -f Docker/docker-compose.yml down
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.base_ref == 'develop' || github.base_ref == 'main'
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'adopt'
+          java-version: '17'
+
+      - name: Build Docker images
+        run: docker compose -f Docker/docker-compose.yml build
+
+      - name: Deploy Application
+        run: |
+          docker compose -f Docker/docker-compose.yml up -d  # Adjust based on your deployment requirements
+
+      - name: Verify Deployment
+        run: |
+          # Add commands to verify deployment if needed
+          curl -f http://your-deployed-app-url/health || exit 1
