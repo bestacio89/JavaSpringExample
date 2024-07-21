@@ -1,9 +1,10 @@
-name: Test CI
+name: Template Testing Pipeline
 
-on: [push, pull_request]
+on: [pull_request]
+branches: [develop, main]
 
 jobs:
-  test:
+  Template_Testing_Pipeline:
     runs-on: ubuntu-latest
 
     steps:
