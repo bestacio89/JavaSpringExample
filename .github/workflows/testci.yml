@@ -2,12 +2,13 @@ name: Template Test Pipeline
 
 
 on:
-
+#Trigger on pull_request on Develop branch
   pull_request:
     branches:
-      - ['main', 'develop']
+      ['develop']
     paths-ignore:
-      -['docs/**']
+      ['docs/**']
+
 
 
 jobs:
