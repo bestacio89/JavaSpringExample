@@ -1,10 +1,14 @@
-name: Template Testing Pipeline
+name: Template Test Pipeline
 
-on: [pull_request]
-branches: [develop, main]
+on:
+  pull_request:
+    branches:
+      - develop
+      - main
 
 jobs:
-  Template_Testing_Pipeline:
+  test:
+    if: github.base_ref == 'develop' || github.base_ref == 'main'
     runs-on: ubuntu-latest
 
     steps:
