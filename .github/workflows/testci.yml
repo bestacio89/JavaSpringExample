@@ -28,4 +28,4 @@ jobs:
       run: mvn -B package --file pom.xml
 
     - name: Run tests with Maven
-      run: mvn test -Dtest='!ProductRepositoryTest'
+      run: mvn test
