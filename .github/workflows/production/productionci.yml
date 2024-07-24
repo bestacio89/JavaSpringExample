@@ -1,4 +1,4 @@
-name: CI  # Name of the GitHub Actions workflow
+name: ProductionCI  # Name of the GitHub Actions workflow
 
 # Enable Buildkit and let compose use it to speed up image building
 env:
@@ -7,14 +7,9 @@ env:
 
 # Define the events that trigger this workflow
 on:
-  # Trigger on pull requests to master or main branches, ignoring changes in 'docs' directory
-  pull_request:
-    branches: ['master', 'main']
-    paths-ignore: ['docs/**']
-
-  # Trigger on push to master or main branches, ignoring changes in 'docs' directory
+  # Trigger on push to main branch after a pull request is merged
   push:
-    branches: ['master', 'main']
+    branches: ['main']
     paths-ignore: ['docs/**']
 
 # Define concurrency settings to ensure multiple workflows don't interfere
@@ -41,8 +36,8 @@ jobs:
       - name: Run Maven linter  # Step to run Maven linter (e.g., checkstyle)
         run: mvn checkstyle:check  # Run Maven checkstyle
 
-  # Job for running tests
-  test:
+  # Job for running tests and deploying
+  test_and_deploy:
     runs-on: ubuntu-latest  # Use Ubuntu latest version as the runner
 
     steps:
@@ -63,11 +58,8 @@ jobs:
 
       - name: Run Liquibase Migrations  # Step to run database migrations
         env:  # Set environment variables from GitHub Secrets
-      
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-
-
         run: |
           docker compose -f Docker/docker-compose.yml run --rm app mvn liquibase:update  # Run Liquibase migrations
           # Note: Ensure 'app' is the correct service name
@@ -80,7 +72,18 @@ jobs:
           docker compose -f Docker/docker-compose.yml run --rm app mvn test  # Run Maven tests
           # Note: Ensure 'app' is the correct service name
 
-      - name: Tear down the Docker stack  # Step to tear down the Docker stack
+      # Deployment steps go here (e.g., pushing images to a registry, updating services)
+      - name: Deploy Application  # Step to deploy the application
         run: |
-          docker compose -f Docker/docker-compose.yml down  # Take down the stack
-          # Adjust command options as needed (e.g., stop only specific services)
+          # Add your deployment commands here
+          echo "Deploying the application..."
+          # Example: Push the built images to Docker Hub
+          docker compose -f Docker/docker-compose.yml push
+          # Example: Use kubectl or other tools to update your deployment
+          # kubectl apply -f k8s/
+
+# Note: Remove or comment out the tear down step to keep services running
+#      - name: Tear down the Docker stack  # Step to tear down the Docker stack
+#        run: |
+#          docker compose -f Docker/docker-compose.yml down  # Take down the stack
+#          # Adjust command options as needed (e.g., stop only specific services)
