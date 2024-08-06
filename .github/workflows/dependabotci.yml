@@ -1,0 +1,32 @@
+name: Dependabot Auto-Merge and PR
+
+on:
+  pull_request:
+    branches:
+      ['main']
+
+jobs:
+  auto-merge-and-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Install GitHub CLI
+      run: sudo apt-get install gh -y
+
+    - name: Auto-merge Dependabot PRs
+      if: github.actor == 'dependabot[bot]'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        PR_NUMBER=$(jq --raw-output .number "$GITHUB_EVENT_PATH")
+        gh pr merge $PR_NUMBER --merge
+
+    - name: Create PR from main to develop
+      if: github.actor == 'dependabot[bot]'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh pr create --base develop --head main --title "Sync main with develop" --body "Automated PR to sync main with develop after Dependabot merge"

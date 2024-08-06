@@ -1,15 +1,12 @@
 name: Template Test Pipeline
 
-
 on:
-#Trigger on pull_request on Develop branch
+  # Trigger on pull_request on Develop branch
   pull_request:
     branches:
       ['develop']
     paths-ignore:
       ['docs/**']
-
-
 
 jobs:
   test:
@@ -38,3 +35,11 @@ jobs:
 
     - name: Run tests with Maven
       run: mvn test
+
+    - name: Create Pull Request to Main
+      if: success()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh auth login --with-token <<< "${GITHUB_TOKEN}"
+        gh pr create --base main --head develop --title "[Pull Request] Automated Testing Pull Request" --body "Automated PR created after successful tests Further Description added from previous commits: "
