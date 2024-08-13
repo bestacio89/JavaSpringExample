@@ -1,4 +1,4 @@
-# Build stage with Java 17 image
+# Base image for build stage with Java 17
 FROM maven:3.8.1-openjdk-17 AS builder
 
 # Set the working directory inside the container
@@ -8,11 +8,17 @@ WORKDIR /usr/src/app
 COPY pom.xml .
 COPY src ./src
 
-# Package the application
-RUN mvn clean package -DskipTests
+# Package the application (without running tests)
+ARG SKIP_TESTS=true
+RUN mvn clean package -DskipTests=${SKIP_TESTS}
 
-# Base image for running the application (using Java 17)
-FROM eclipse-temurin:17-jre
+# Test stage (Optional)
+FROM builder AS tester
+# Run tests if SKIP_TESTS is not set to true
+RUN mvn test
+
+# Production stage
+FROM eclipse-temurin:17-jre AS production
 
 # Set the working directory inside the container
 WORKDIR /usr/src/app
