@@ -1,0 +1,53 @@
+trigger:
+  branches:
+    include:
+      - develop
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  dockerImageName: 'my-app'
+
+stages:
+  - stage: Build
+    jobs:
+      - job: BuildAndTest
+        steps:
+          - task: UseJava@2
+            inputs:
+              versionSpec: '17'
+              distribution: 'temurin'
+
+          - script: |
+              # Build Docker image up to builder stage without running tests
+              docker build --target builder --build-arg SKIP_TESTS=true -t $(dockerImageName):builder .
+
+              # Build Docker image up to tester stage and run tests
+              docker build --target tester --build-arg SKIP_TESTS=false -t $(dockerImageName):test .
+              docker run --rm $(dockerImageName):test
+            displayName: 'Build and Test Docker Image'
+
+  - stage: CreatePullRequest
+    dependsOn: Build
+    condition: succeeded()
+    jobs:
+      - job: CreatePR
+        steps:
+          - task: Bash@3
+            inputs:
+              targetType: 'inline'
+              script: |
+                # Install GitHub CLI if needed
+                if ! command -v gh &> /dev/null
+                then
+                    echo "GitHub CLI not found, installing..."
+                    sudo apt-get update && sudo apt-get install gh -y
+                fi
+                
+                # Authenticate GitHub CLI
+                echo "${{ secrets.GITHUB_TOKEN }}" | gh auth login --with-token
+                
+                # Create a pull request
+                gh pr create --base main --head develop --title "[Auto PR] Merge Develop into Main" --body "This pull request merges changes from the develop branch into the main branch."
+            displayName: 'Create Pull Request to Main'

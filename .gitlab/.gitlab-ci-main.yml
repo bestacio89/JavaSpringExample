@@ -1,0 +1,23 @@
+stages:
+  - build
+  - deploy
+
+# Job to build the final production image
+build_production:
+  stage: build
+  script:
+    - docker build -t my-app:production .
+  only:
+    - main
+
+# Job to deploy the Docker image to a registry
+deploy:
+  stage: deploy
+  dependencies:
+    - build_production
+  script:
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - docker tag my-app:production "$CI_REGISTRY_IMAGE:latest"
+    - docker push "$CI_REGISTRY_IMAGE:latest"
+  only:
+    - main

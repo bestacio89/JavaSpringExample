@@ -1,0 +1,45 @@
+stages:
+  - build
+  - test
+  - pr
+
+# Job to build the Docker image without running tests
+build:
+  stage: build
+  script:
+    - docker build --target builder --build-arg SKIP_TESTS=true -t my-app:builder -f template.Dockerfile .
+  artifacts:
+    paths:
+      - app.jar
+  only:
+    - develop
+
+# Job to run tests inside the Docker container
+test:
+  stage: test
+  dependencies:
+    - build
+  script:
+    # Rebuild the image up to the test stage to run tests
+    - docker build --target tester --build-arg SKIP_TESTS=false -t my-app:test -f template.Dockerfile .
+    # Run the tests inside the Docker container
+    - docker run --rm my-app:test
+  only:
+    - develop
+
+# Job to create a pull request to the main branch
+create_merge_request:
+  stage: pr
+  script:
+    - |
+      curl --request POST --header "PRIVATE-TOKEN: $CI_JOB_TOKEN" \
+        --form "source_branch=develop" \
+        --form "target_branch=main" \
+        --form "title=Automated merge request from develop" \
+        "https://gitlab.example.com/api/v4/projects/$CI_PROJECT_ID/merge_requests"
+  only:
+    - develop
+  dependencies:
+    - test
+  when: manual  # Optional: Set to `manual` if you want to trigger it manually rather than automatically
+

@@ -1,0 +1,46 @@
+trigger:
+  branches:
+    include:
+      - main
+      - master
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  dockerImageName: 'my-app'
+  dockerRegistry: 'myregistry.azurecr.io'
+  dockerRegistryServiceConnection: 'MyDockerRegistryConnection'  # Azure DevOps service connection name
+
+stages:
+  - stage: BuildAndDeploy
+    jobs:
+      - job: BuildProduction
+        steps:
+          - task: UseJava@2
+            inputs:
+              versionSpec: '17'
+              distribution: 'temurin'
+
+          - script: |
+              # Build the final production Docker image
+              docker build -t $(dockerImageName):production .
+            displayName: 'Build Production Docker Image'
+
+          - task: Docker@2
+            inputs:
+              containerRegistry: $(dockerRegistryServiceConnection)
+              repository: $(dockerRegistry)/$(dockerImageName)
+              command: 'buildAndPush'
+              Dockerfile: '**/Dockerfile'
+              tags: |
+                latest
+            displayName: 'Push Docker Image to Registry'
+
+      - job: Deploy
+        dependsOn: BuildProduction
+        steps:
+          - script: |
+              echo "Deploying the application to the production environment..."
+              # Add deployment steps here, e.g., Kubernetes, Azure Web Apps, etc.
+            displayName: 'Deploy to Production'
