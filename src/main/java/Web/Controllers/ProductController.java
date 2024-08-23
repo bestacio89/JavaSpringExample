@@ -39,23 +39,38 @@ public class ProductController {
             @RequestParam(defaultValue = "desc") String direction) {
 
         try {
+            // Define the sort direction and pageable object
             Sort sort = direction.equalsIgnoreCase(Sort.Direction.ASC.name()) ?
                     Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
 
             Pageable pageable = PageRequest.of(page, size, sort);
-            Page<ProductEntity> productPage = productService.findAll();
 
+            // Pass the pageable to the service layer to fetch a page of products
+            Page<ProductEntity> productPage = productService.findAll(pageable);
+
+            // Convert the product entities to DTOs
             List<ProductDto> products = productPage.stream()
                     .map(this::convertToDto)
                     .collect(Collectors.toList());
 
-            ApiResponse<List<ProductDto>> response = new ApiResponse<>(HttpStatus.OK.value(), "Products retrieved successfully", products);
+            // Wrap the result in your custom ApiResponse
+            ApiResponse<List<ProductDto>> response = new ApiResponse<>(
+                    HttpStatus.OK.value(),
+                    "Products retrieved successfully",
+                    products
+            );
+
             return ResponseEntity.ok(response);
+
         } catch (Exception e) {
+            // Handle exceptions and log the error message
             System.out.println("Error retrieving products: " + e.getMessage());
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body(
+                    new ApiResponse<>(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Error retrieving products", null)
+            );
         }
     }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ApiResponse<ProductDto>> getProductById(@PathVariable Long id) {

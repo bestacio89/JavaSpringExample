@@ -7,6 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -36,13 +39,25 @@ public class ProductServiceTest {
 
     @Test
     void testFindAllProducts() {
-        when(productRepository.findAll()).thenReturn(Arrays.asList(product1, product2));
+        // Arrange
+        // Create a list of products to be returned by the repository
+        List<ProductEntity> productList = Arrays.asList(product1, product2);
 
-        List<ProductEntity> products = productService.findAll();
+        // Convert the list to a Page object using PageImpl
+        Page<ProductEntity> productPage = new PageImpl<>(productList);
 
-        assertEquals(2, products.size());
-        assertEquals(product1, products.get(0));
-        assertEquals(product2, products.get(1));
+        // Mock the repository to return a page of products
+        when(productRepository.findAll(any(Pageable.class))).thenReturn(productPage);
+
+        // Act
+        // Call the service method
+        Page<ProductEntity> resultPage = productService.findAll(Pageable.unpaged());
+
+        // Assert
+        // Validate the results
+        assertEquals(2, resultPage.getContent().size());
+        assertEquals(product1, resultPage.getContent().get(0));
+        assertEquals(product2, resultPage.getContent().get(1));
     }
 
     @Test

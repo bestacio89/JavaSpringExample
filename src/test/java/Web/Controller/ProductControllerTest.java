@@ -1,6 +1,5 @@
 package Web.Controller;
 
-import Core.Entity.Product;
 import Persistence.Repository.ProductRepository;
 import Web.Models.Dto.ProductCreateDto;
 import Core.Entity.ProductEntity;
@@ -14,10 +13,15 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.AutoConfigureDataJpa;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.web.servlet.MockMvc;
+
+import org.springframework.data.domain.Pageable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,7 +53,7 @@ public class ProductControllerTest {
     private ObjectMapper objectMapper;
 
     // Test data builder
-    public static class ProductEntityBuilder extends Product {
+    public static class ProductEntityBuilder extends ProductEntity {
         private Long id;
         private String name;
         private String description;
@@ -92,39 +96,51 @@ public class ProductControllerTest {
 
     @Test
     void GetAllProductsReturnsList() throws Exception {
-        // Mock data
-        List<ProductEntity> products = Arrays.asList(
+        // Create a list of products
+        List<ProductEntity> productList = Arrays.asList(
                 new ProductEntityBuilder().withId(1L).withName("Product1").withDescription("Description1").withPrice(10.0).build(),
                 new ProductEntityBuilder().withId(2L).withName("Product2").withDescription("Description2").withPrice(20.0).build()
         );
-        // Mocking service behavior instead of repository
-        when(productService.findAll()).thenReturn(products);
+
+        // Convert list to a Page object
+        Pageable pageable = PageRequest.of(0, 2); // Specify the page number and size
+        Page<ProductEntity> productPage = new PageImpl<>(productList, pageable, productList.size());
+
+        // Mocking service behavior to return a page instead of a list
+        when(productService.findAll(any(Pageable.class))).thenReturn(productPage);
 
         // Perform GET request and validate the response
         mockMvc.perform(get("/api/products")
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("page", "0") // specify page parameter
+                        .param("size", "2")) // specify size parameter
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].id").value(products.get(0).getId()))
-                .andExpect(jsonPath("$[0].name").value(products.get(0).getName()))
-                .andExpect(jsonPath("$[0].description").value(products.get(0).getDescription()))
-                .andExpect(jsonPath("$[0].price").value(products.get(0).getPrice()))
-                .andExpect(jsonPath("$[1].id").value(products.get(1).getId()))
-                .andExpect(jsonPath("$[1].name").value(products.get(1).getName()))
-                .andExpect(jsonPath("$[1].description").value(products.get(1).getDescription()))
-                .andExpect(jsonPath("$[1].price").value(products.get(1).getPrice()));
+                .andExpect(jsonPath("$.content[0].id").value(productList.get(0).getId()))
+                .andExpect(jsonPath("$.content[0].name").value(productList.get(0).getName()))
+                .andExpect(jsonPath("$.content[0].description").value(productList.get(0).getDescription()))
+                .andExpect(jsonPath("$.content[0].price").value(productList.get(0).getPrice()))
+                .andExpect(jsonPath("$.content[1].id").value(productList.get(1).getId()))
+                .andExpect(jsonPath("$.content[1].name").value(productList.get(1).getName()))
+                .andExpect(jsonPath("$.content[1].description").value(productList.get(1).getDescription()))
+                .andExpect(jsonPath("$.content[1].price").value(productList.get(1).getPrice()))
+                .andExpect(jsonPath("$.totalElements").value(productList.size())) // Check total elements
+                .andExpect(jsonPath("$.totalPages").value(1)); // Check total pages
     }
+
+
 
     @Test
     public void GetAllProductsReturnsEmptyList() throws Exception {
-        // Mock service behavior to return an empty list
-        when(productService.findAll()).thenReturn(Collections.emptyList());
+        // Mock service behavior to return an empty page
+        when(productService.findAll(any(Pageable.class))).thenReturn(Page.empty());
 
         // Perform GET request and validate the response (empty list expected)
         mockMvc.perform(get("/api/products")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$").isEmpty()); // Assert that the response body is an empty array
+                .andExpect(jsonPath("$.content").isEmpty()); // Assert that the 'content' array is empty
     }
+
     @Test
     public void GetProductByIdReturnsObject() throws Exception {
         // Create mock product using builder
