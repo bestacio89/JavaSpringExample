@@ -1,11 +1,11 @@
 package Service;
 
-import Persistence.Entity.ProductEntity;
+import Core.Entity.ProductEntity;
 import Persistence.Repository.ProductRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -18,8 +18,8 @@ public class ProductService {
         this.productRepository = productRepository;
     }
 
-    public List<ProductEntity> findAll() {
-        return productRepository.findAll();
+    public Page<ProductEntity> findAll() {
+        return productRepository.findAll(pageable);
     }
 
     public Optional<ProductEntity> findById(Long id) {
@@ -34,5 +34,14 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
+    public void flush() {
+        productRepository.flush();
+    }
+
+    public ProductEntity saveAndFlush(ProductEntity product) {
+        return productRepository.saveAndFlush(product);
+    }
+
     // Add any additional business logic if needed
 }
+

@@ -1,5 +1,6 @@
 package Persistence.Entity;
 
+import Core.Entity.ProductEntity;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 

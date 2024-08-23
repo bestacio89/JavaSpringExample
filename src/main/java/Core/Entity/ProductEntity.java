@@ -1,4 +1,4 @@
-package Persistence.Entity;
+package Core.Entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

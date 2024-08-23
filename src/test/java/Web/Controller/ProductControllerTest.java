@@ -2,8 +2,8 @@ package Web.Controller;
 
 import Core.Entity.Product;
 import Persistence.Repository.ProductRepository;
-import Web.Models.ProductCreateDto;
-import Persistence.Entity.ProductEntity;
+import Web.Models.Dto.ProductCreateDto;
+import Core.Entity.ProductEntity;
 import Service.ProductService;
 import com.example.demo.ProductApplication;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,4 +1,4 @@
-package Web.Models;
+package Web.Models.Dto;
 
 public class ProductCreateDto {
 

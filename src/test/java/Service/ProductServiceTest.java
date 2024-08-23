@@ -1,6 +1,6 @@
 package Service;
 
-import Persistence.Entity.ProductEntity;
+import Core.Entity.ProductEntity;
 import Persistence.Repository.ProductRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
